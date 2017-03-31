@@ -1,0 +1,250 @@
+{% load staticfiles %}
+{% csrf_token %}
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8" name="viewport" content="width=device-width">
+    <link rel="stylesheet" type="text/css" href="{% static "wyniki/templates/style.css" %}">
+    <link rel="stylesheet" media="all" href="{% static "wyniki/templates/jquery-jvectormap-2.0.3.css" %}"/>
+
+    <script src="{% static "wyniki/scripts/jquery-1.12.2.min.js" %}"></script>
+    <script src="{% static "wyniki/scripts/jquery-jvectormap-2.0.3.min.js" %}"></script>
+    <script src="{% static "wyniki/scripts/jquery-jvectormap-pl-mill.js" %}"></script>
+    <script src="{% static "wyniki/scripts/script.js" %}"></script>
+    <script src="{% static "wyniki/scripts/ajax.js" %}"></script>
+
+    <title>Wybory 2005</title>
+</head>
+<body>
+    <div>
+        <img id="banner" src="{% static "wyniki/images/banner_pl.png" %}">
+    </div>
+
+    <nav class="navigation">
+
+        <ul class="nav-bar">
+            <ul class="nav-head nav-item">
+                <li class="nav-head-item"><a href="404.html">Strona główna</a></li>
+                <li class="nav-head-item" id="more"><a href="#" onclick="expandNavBar()">☰</a></li>
+            </ul>
+            <li class="nav-item"><a href="#">Akty Prawne</a></li>
+            <li class="nav-item"><a href="#">Dokumenty</a></li>
+            <li class="nav-item"><a href="#">Organy wyborcze</a></li>
+            <li class="nav-item"><a href="#">Kandydaci</a></li>
+            <li class="nav-item"><a href="#">Frekwencja</a></li>
+            <li class="nav-item"><a href="#">Wyniki</a></li>
+            <li class="nav-item"><a href="#">Pierwsze głosowanie</a></li>
+            <li class="nav-item"><a href="#">SEJM</a></li>
+            <li class="nav-item"><a href="#">SENAT</a></li>
+            <li class="nav-item"><a href="#">Wykonawca</a></li>
+        </ul>
+    </nav>
+
+    <div class="title-bar">
+        <p class="title-item">
+            Wyniki głosowania
+        </p>
+        <p id="login-status" class="text">
+            {% if user.is_authenticated %}
+                Zalogowano jako <b>{{ user.username }}</b> <a class="auth" href="logout/">Wyloguj</a>
+            {% else %}
+                Nie jestes zalogowany. <a class="auth" href="login/">Zaloguj</a>
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="content-bar">
+        <div class="main-content-bar">
+            <div class="main-content-item main-content-header text">
+                Porównanie wyników głosowania na kandydatów
+            </div>
+            <div id="map" class="main-content-item"></div>
+            <script>
+                $(function(){
+                    $('#map').vectorMap({map: 'pl_mill'});
+                });
+            </script>
+        </div>
+        <div class="off-content-bar">
+            <div class="off-content-more off-content-item">
+                <p class="link-header text">
+                    Zobacz takze:
+                </p>
+                <ul class="link-list">
+                    <li class="link-item">
+                        <a href="#" class="text">
+                            Frekwencja
+                        </a>
+                    </li>
+                    <li class="link-item">
+                        <a href="#" class="text">
+                            Wyniki glosowania zagranica
+                        </a>
+                    </li>
+                    <li class="link-item">
+                        <a href="#" class="text">
+                            Porównanie wyników głosowania na kandydatów w zależności od siedziby komisji obwodowej
+                        </a>
+                    </li>
+                </ul>
+                <p class="link-header text">
+                    Szczegółowe wyniki głosowania na kandydatów:
+                </p>
+                <ul class="link-list">
+                    {% for cand in candidates %}
+                    <li class="link-item">
+                        <a href="#" class="text">
+                            {{ cand.0 }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+            </div>
+            <div class="text off-content-stats off-content-item">
+                {% for cand in candidates %}
+
+                        <div class="candidate-name">
+                            {{ cand.0 }}
+                        </div>
+                        <div class="candidate-bar">
+                            <div class="candidate-color-space">
+                                <div style="background-color: {{ cand.3 }}; width: {{ cand.2 }}">
+                                    &nbsp
+                                </div>
+                            </div>
+                            <div class="candidate-proc">
+                                {{ cand.2 }}
+                            </div>
+                            <div class="candidate-count">
+                                {{ cand.1 }}
+                            </div>
+                        </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <table class="result-table text">
+        <tr class="table-text-header">
+            <th>
+                Nazwa
+            </th>
+            <th>
+                Liczba głosów ważnych
+            </th>
+            <th>
+                {{ candidates.0.0 }}
+            </th>
+            <th>
+                Liczba głosów: na kandydata / ważnych [%]
+            </th>
+            <th>
+                {{ candidates.1.0 }}
+            </th>
+        </tr>
+        {% for res in results %}
+        <tr>
+            <td class="table-text-front name">
+                {{ res.0 }}
+            </td>
+            <td class="table-text-end">
+                {{ res.1 }}
+            </td>
+            <td class="table-text-end">
+                {{ res.2 }}
+            </td>
+            <td class="table-bar">
+                <div style="background-color: {{ candidates.1.3 }}">
+                    <div style="background-color: {{ candidates.0.3 }}; width: {{ res.3 }}">
+                        &nbsp
+                    </div>
+                </div>
+            </td>
+            <td class="table-text-end">
+                {{ res.4 }}
+            </td>
+        </tr>
+        {% endfor %}
+    <tr class="table-break"><td class="table-break">&nbsp;</td></tr>
+        <tr class="table-text-header">
+            <th>
+                Podział
+            </th>
+            <th>
+                Liczba głosów ważnych
+            </th>
+            <th>
+                {{ candidates.0.0 }}
+            </th>
+            <th>
+                Liczba głosów: na kandydata / ważnych [%]
+            </th>
+            <th>
+                {{ candidates.1.0 }}
+            </th>
+
+        </tr>
+        {% for type in types %}
+            <tr>
+                <td class="table-text-front typ">
+                    {{ type.0 }}
+                </td>
+                <td class="table-text-end">
+                    {{ type.1 }}
+                </td>
+                <td class="table-text-end">
+                    {{ type.2 }}
+                </td>
+                <td class="table-bar">
+                    <div style="background-color: {{ candidates.1.3 }}">
+                        <div style="background-color: {{ candidates.0.3 }}; width: {{ type.3 }}">
+                            &nbsp
+                        </div>
+                    </div>
+                </td>
+                <td class="table-text-end">
+                    {{ type.4 }}
+                </td>
+            </tr>
+        {% endfor %}
+        <tr>
+            <td colspan="5" class="table-habitancy">Porównanie wyników głosowania na kandydatów w zależności od liczby mieszkańców gminy</td>
+        </tr>
+        {% for size in sizes %}
+            <tr>
+                <td class="table-text-front rozmiar">
+                    {{ size.0 }}
+                </td>
+                <td class="table-text-end">
+                    {{ size.1 }}
+                </td>
+                <td class="table-text-end">
+                    {{ size.2 }}
+                </td>
+                <td class="table-bar">
+                    <div style="background-color: {{ candidates.1.3 }}">
+                        <div style="background-color: {{ candidates.0.3 }}; width: {{ size.3 }}">
+                            &nbsp
+                        </div>
+                    </div>
+                </td>
+                <td class="table-text-end">
+                    {{ size.4 }}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close">×</span>
+                <h2 id="modal-header-text">Modal Header</h2>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
